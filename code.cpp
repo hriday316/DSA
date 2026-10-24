@@ -1,55 +1,114 @@
 #include <iostream>
+#include <vector>
+#include <queue>
 using namespace std;
 
- 
+class Node
+{
+public:
+   int data;
+   Node *left;
+   Node *right;
 
-void print(int *arr, int n){
-   for(int i= 0; i<n; i++ ){
-      cout << arr[i] << " ";
+   Node(int val)
+   {
+      data = val;
+      left = right = NULL;
    }
-   cout << endl;
+};
+
+Node *insert(Node *root, int val)
+{
+   if (root == NULL)
+   {
+      root = new Node(val);
+      return root;
+   }
+   if (root->data > val)
+   {
+      root->left = insert(root->left, val);
+   }
+   else
+   {
+      root->right = insert(root->right, val);
+   }
+
+   return root;
 }
 
-int partition(int *arr, int st, int end){
-   int i = st -1;
-   int pivot = arr[end];
+Node *buildBST(vector<int> arr)
+{
+   Node *root = NULL;
 
-   for(int j = st; j < end; j++){
-      if(arr[j] <= pivot){
-         i++;
-         swap(arr[i], arr[j]);
+   for (int i = 0; i < arr.size(); i++)
+   {
+      root = insert(root, arr[i]);
+   }
+   return root;
+}
+
+void inOrder(Node *root)
+{
+   if (root == NULL)
+   {
+      return;
+   }
+
+   inOrder(root->left);
+   cout << root->data << " ";
+   inOrder(root->right);
+}
+
+Node *getInorderSuccessor(Node *root)
+{
+   while (root->left != NULL)
+   {
+      root = root->left;
+   }
+   return root;
+}
+
+Node *delNode(Node *root, int val)
+{
+   if (root == NULL)
+      return NULL;
+
+   if (root->data > val){ // left subtree
+      root->left = delNode(root->left, val);
+   }else if (root->data < val){ // right subtree
+      root->right = delNode(root->right, val);
+   }else{
+      // root == val
+      // case1 : 0 child both null
+      if (root->left == NULL && root->right == NULL)
+      {
+         delete root;
+         return NULL;
       }
+       // case2: 1 child one null
+      if (root->left == NULL || root->right == NULL){
+         return root->left == NULL ? root->right : root->left;
+      }
+      // case3 : 2 children
+      //  inorder successor == root right subtree left most node
+      Node *IS = getInorderSuccessor(root->right);
+      root->data = IS->data;
+      root->right = delNode(root->right, IS->data);
+      return root;
    }
-
-   i++;
-   swap(arr[i],arr[end]);
-
-   return i;
-
-
+   return root;
 }
 
-void quickSort(int *arr, int st, int end){
-
-   if(st >= end) return;
-
-   int pivotIdx = partition(arr,st,end);
-
-   quickSort(arr,st, pivotIdx-1); //left half
-   quickSort(arr, pivotIdx+1, end); //right half
-}
- 
 int main()
 {
-   int arr[] = {6,3,7,5,2,4};
-   int n = sizeof(arr)/sizeof(int);
-   int st = 0;
-   int end = n ;
+   vector<int> arr = {8, 5, 3, 1, 4, 6, 10, 11, 14};
+   Node *root = buildBST(arr);
+   inOrder(root);
+   cout << endl;
+   delNode(root, 5);
+   inOrder(root);
 
-   quickSort(arr,st,end);
-   print(arr,n);
-  
+   cout << endl;
+
    return 0;
 }
-
-// clang++ code.cpp -o a.out && ./a.out
